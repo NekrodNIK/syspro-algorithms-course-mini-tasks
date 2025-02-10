@@ -7,14 +7,13 @@ import io
 
 def check_commit(commit_hash: str, command: list[str]):
     subprocess.run(["git", "checkout", commit_hash])
-    print(subprocess.run(command).returncode)
     return subprocess.run(command).returncode == 0
 
 
 def get_hash_list(start: str, end: str):
-    return [start] + subprocess.check_output(
+    return [start] + list(reversed(subprocess.check_output(
         ["git", "--no-pager", "log", "--pretty=%h", f"{start}..{end}"]
-    ).decode().splitlines()
+    ).decode().splitlines()))
 
 
 if len(sys.argv) != 5:
@@ -33,9 +32,11 @@ if ".git" not in os.listdir():
     print("Directory exists, but is not a repository")
     exit()
 
+state = subprocess.check_output(["git", "--no-pager", "log", "-1", "--pretty=%h"]).decode().strip()
+
 hash_list = get_hash_list(start, end)
 l = 0
-r = len(hash_list)
+r = len(hash_list) - 1
 
 
 while l < r:
@@ -47,7 +48,5 @@ while l < r:
         r = mid
 
 
-print(f"first bad commit: {hash_list[l]}")
-
-    
-
+print(f"\033[91mfirst bad commit: {hash_list[r]}\033[39m")
+subprocess.run(["git", "checkout", state])
