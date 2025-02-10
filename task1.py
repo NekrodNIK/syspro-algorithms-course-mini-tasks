@@ -10,17 +10,23 @@ def div(a: int, b: int) -> tuple[int, int]:
 
     Худший случай:
         n итераций внешнего цикла:
-        - m итераций первого вложенного цикла
-        - 10 итераций второго вложенного цикла
-        T(n, m) = O(n*(m+10)) = O(m*n)
+        - m итерации первого вложенного цикла
+        - base = 10 итераций второго вложенного цикла
+        - C = const остальных операций
+
+        T(n, m) = O(n*(m+base+C)) = O(n*m)
+
     Лучший случай:
         a = b, T(n, m) = O(1)
 
     """
+    if b == 0 or b > a:
+        return 0, a
+        
     quotient = 0
 
     while a >= b:
-        for l in range(num_len(b), num_len(a) + 1):
+        for l in range(1, num_len(a) + 1):
             if int(str(a)[:l]) >= b:
                 break
         else:

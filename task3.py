@@ -17,7 +17,8 @@ def get_hash_list(start: str, end: str):
 
 
 if len(sys.argv) != 5:
-    print("need four arguments")
+    print("need four arguments: <repo_path> <good_commit> <bad_commit> <command>")
+    exit()
 
 _, repo, start, end, command = sys.argv
 command = shlex.split(command)
