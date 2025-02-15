@@ -1,8 +1,5 @@
 package main
 
-// leetcode:
-// https://leetcode.com/problems/h-index/submissions/1543141394
-
 func insertion_sort_k(arr []int, k int) {
 	for i := k; i < len(arr); i++ {
 		for j := i; j >= k && arr[j-k] < arr[j]; j -= k {
