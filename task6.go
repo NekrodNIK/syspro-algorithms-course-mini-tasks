@@ -7,7 +7,7 @@ func step_calc(prev int) int {
 	return prev/2 + prev%2
 }
 
-func mergeSort(arr []int) {
+func inPlaceMergeSort(arr []int) {
 	if len(arr) <= 1 {
 		return
 	}
@@ -32,6 +32,6 @@ func mergeSort(arr []int) {
 }
 
 func sortArray(nums []int) []int {
-	mergeSort(nums)
+	inPlaceMergeSort(nums)
 	return nums
 }
