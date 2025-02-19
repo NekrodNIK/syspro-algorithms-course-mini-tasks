@@ -1,5 +1,12 @@
 package main
 
+func step_calc(prev int) int {
+	if prev <= 1 {
+		return 0
+	}
+	return prev/2 + prev%2
+}
+
 func mergeSort(arr []int) {
 	if len(arr) <= 1 {
 		return
@@ -11,20 +18,15 @@ func mergeSort(arr []int) {
 	mergeSort(arr[mid:])
 
 	l := len(arr) - 1
-	g := l/2 + l%2
-
-	for g > 0 {
-		for j := g; j <= l; j++ {
-			i := j - g
+	k := l/2 + l%2
+	for k > 0 {
+		for j := k; j <= l; j++ {
+			i := j - k
 			if arr[i] > arr[j] {
 				arr[i], arr[j] = arr[j], arr[i]
 			}
 		}
-		if g <= 1 {
-			g = 0
-		} else {
-			g = g/2 + g%2
-		}
+		k = step_calc(k)
 	}
 
 }
@@ -33,4 +35,3 @@ func sortArray(nums []int) []int {
 	mergeSort(nums)
 	return nums
 }
-
