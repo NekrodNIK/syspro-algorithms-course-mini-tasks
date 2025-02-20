@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 func merge(left, right []int) ([]int, int) {
 	result := make([]int, len(left)+len(right))
 	i, j, k := 0, 0, 0
