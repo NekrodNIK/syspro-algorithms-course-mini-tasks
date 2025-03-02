@@ -7,7 +7,7 @@
 #include <string.h>
 #include <time.h>
 
-#define REPETITIONS 10
+#define REPETITIONS 20
 
 typedef enum {
   lomuto,
@@ -214,7 +214,7 @@ int main() {
   
 
   double m[3];
-  for (size_t size = 1024; size <= 33554432; size *= 2) {
+  for (size_t size = 65536; size <= 4294967296; size *= 2) {
     timeMeasurement(size, lomuto, m);
     printf("%9zu: %f %f %f -- ", size, m[0], m[1], m[2]);
     timeMeasurement(size, hoare, m);
