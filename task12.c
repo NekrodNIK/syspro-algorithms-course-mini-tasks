@@ -1,13 +1,12 @@
 #include <assert.h>
-#include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-#define REPETITIONS 20
-#define MAX_LEN 1048576*2
+#define REPETITIONS 10
 
 typedef enum {
   lomuto,
@@ -51,10 +50,8 @@ void hoareQuicksort(int* arr, int low, int high) {
   int i = low - 1, j = high + 1;
 
   for (;;) {
-    while (arr[++i] < pivot)
-      ;
-    while (arr[--j] > pivot)
-      ;
+    while (arr[++i] < pivot);
+    while (arr[--j] > pivot);
     if (i >= j)
       break;
 
@@ -65,33 +62,27 @@ void hoareQuicksort(int* arr, int low, int high) {
   hoareQuicksort(arr, j + 1, high);
 }
 
-int lomutoPartitionBranchFree(int* arr, int first, int last) {
-  assert(first <= last);
+size_t lomutoPartitionBranchFree(int* a, size_t first, size_t last) {
   if (last - first < 2)
     return first;
-  --last;
+  last--;
+  if (a[first] > a[last])
+    swap(a + first, a + last);
+  size_t pivot_pos = first;
+  int pivot = a[first];
 
-  if (arr[first] > arr[last])
-    swap(arr + first, arr + last);
-
-  int index = first;
-  int pivot = arr[first];
-  do {
-    ++first;
-    assert(first <= last);
-  } while (arr[first] < pivot);
-
-  for (int i = first + 1; i < last; i++) {
-    int smaller = -(arr[i] < pivot);
-    int delta = smaller & (i - first);
-    arr[first + delta] = arr[first];
-    arr[i - delta] = arr[i];
+  while (a[++first] < pivot);
+  for (size_t read = first + 1; read < last; read++) {
+    int x = a[read];
+    int smaller = -(int)(x < pivot);
+    int delta = smaller & (read - first);
+    a[first + delta] = a[first];
+    a[read - delta] = x;
     first -= smaller;
   }
-  assert(arr[first] >= pivot);
-  --first;
-  arr[index] = first;
-  arr[first] = pivot;
+  first--;
+  a[pivot_pos] = a[first];
+  a[first] = pivot;
   return first;
 }
 
@@ -99,10 +90,10 @@ void lomutoQuicksortBranchFree(int* arr, int low, int high) {
   if (low >= high) {
     return;
   }
-  int pivot = lomutoPartitionBranchFree(arr, low, high);
+  int pivot = lomutoPartitionBranchFree(arr, low, high + 1);
 
-  lomutoQuicksort(arr, low, pivot - 1);
-  lomutoQuicksort(arr, pivot, high);
+  lomutoQuicksortBranchFree(arr, low, pivot);
+  lomutoQuicksortBranchFree(arr, pivot + 1, high);
 }
 
 int* sortArray(int* nums, int numsSize, Mode mode) {
@@ -163,15 +154,15 @@ void fillRandom(int* arr, size_t len) {
 
 void timeMeasurement(size_t len, Mode mode, double* result) {
   int* arr = (int*)malloc(len * sizeof(int));
-  fillRandom(arr, len);
-  
   double* m = (double*)malloc(REPETITIONS * sizeof(double));
+
   for (size_t i = 0; i < REPETITIONS; i++) {
+    fillRandom(arr, len);
+
     clock_t start = clock();
-
     sortArray(arr, len, mode);
-
     clock_t end = clock();
+
     double seconds = (double)(end - start) / CLOCKS_PER_SEC;
     m[i] = seconds;
   }
@@ -186,18 +177,12 @@ void timeMeasurement(size_t len, Mode mode, double* result) {
 
 int main() {
   double m[3];
-  for (size_t size = 1024; size <= MAX_LEN; size *= 2) {
+  for (size_t size = 1024; size <= 1000000000; size *= 2) {
     timeMeasurement(size, lomuto, m);
-    printf("lomuto %zu: %f %f %f\n", size, m[0], m[1], m[2]);
-  }
-  
-  for (size_t size = 1024; size <= MAX_LEN; size *= 2) {
+    printf("%zu: %f %f %f -- ", size, m[0], m[1], m[2]);
     timeMeasurement(size, hoare, m);
-    printf("hoare %zu: %f %f %f\n", size, m[0], m[1], m[2]);
-  }
-  
-  for (size_t size = 1024; size <= MAX_LEN; size *= 2) {
+    printf("%f %f %f -- ", m[0], m[1], m[2]);
     timeMeasurement(size, lomutoBF, m);
-    printf("lomutoBF %zu: %f %f %f\n", size, m[0], m[1], m[2]);
+    printf("%f %f %f\n", m[0], m[1], m[2]);
   }
 }
