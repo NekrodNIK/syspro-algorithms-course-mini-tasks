@@ -28,13 +28,16 @@ void lomutoQuicksort(int* arr, int low, int high) {
   int l = low, h = low;
 
   for (int c = low; c <= high; c++) {
-    if (arr[c] == pivot)
-      swap(arr + h++, arr + c);
-    else if (arr[c] < pivot) {
+    if (arr[c] == pivot) {
+      swap(arr + h, arr + c);
+      h++;
+    } else if (arr[c] < pivot) {
       int tmp = arr[c];
       arr[c] = arr[h];
-      arr[h++] = arr[l];
-      arr[l++] = tmp;
+      arr[h] = arr[l];
+      arr[l] = tmp;
+      h++;
+      l++;
     }
   }
 
@@ -49,9 +52,15 @@ void hoareQuicksort(int* arr, int low, int high) {
   int pivot = arr[(low + rand() % (high - low + 1))];
   int i = low - 1, j = high + 1;
 
-  for (;;) {
-    while (arr[++i] < pivot);
-    while (arr[--j] > pivot);
+  while (true) {
+    do {
+      i++;
+    } while (arr[i] < pivot);
+
+    do {
+      j--;
+    } while (arr[j] > pivot);
+
     if (i >= j)
       break;
 
@@ -62,27 +71,33 @@ void hoareQuicksort(int* arr, int low, int high) {
   hoareQuicksort(arr, j + 1, high);
 }
 
-size_t lomutoPartitionBranchFree(int* a, size_t first, size_t last) {
+int lomutoPartitionBranchFree(int* arr, int first, int last) {
   if (last - first < 2)
     return first;
-  last--;
-  if (a[first] > a[last])
-    swap(a + first, a + last);
-  size_t pivot_pos = first;
-  int pivot = a[first];
 
-  while (a[++first] < pivot);
-  for (size_t read = first + 1; read < last; read++) {
-    int x = a[read];
-    int smaller = -(int)(x < pivot);
-    int delta = smaller & (read - first);
-    a[first + delta] = a[first];
-    a[read - delta] = x;
-    first -= smaller;
+  last--;
+  if (arr[first] > arr[last]) {
+    swap(arr + first, arr + last);
   }
+
+  int pivot_pos = first;
+  int pivot = arr[first];
+
+  do {
+    first++;
+  } while (arr[first] < pivot);
+  for (int read = first + 1; read < last; read++) {
+    int x = arr[read];
+    int less = -(x < pivot);
+    int delta = less & (read - first);
+    arr[first + delta] = arr[first];
+    arr[read - delta] = x;
+    first -= less;
+  }
+
   first--;
-  a[pivot_pos] = a[first];
-  a[first] = pivot;
+  arr[pivot_pos] = arr[first];
+  arr[first] = pivot;
   return first;
 }
 
