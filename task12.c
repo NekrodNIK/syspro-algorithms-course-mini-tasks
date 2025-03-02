@@ -7,7 +7,7 @@
 #include <string.h>
 #include <time.h>
 
-#define REPETITIONS 20
+#define REPETITIONS 10
 
 typedef enum {
   lomuto,
