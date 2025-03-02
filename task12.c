@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #define REPETITIONS 10
@@ -90,6 +91,7 @@ int lomutoPartitionBranchFree(int* arr, int first, int last) {
     int x = arr[read];
     int less = -(x < pivot);
     int delta = less & (read - first);
+    
     arr[first + delta] = arr[first];
     arr[read - delta] = x;
     first -= less;
@@ -98,6 +100,7 @@ int lomutoPartitionBranchFree(int* arr, int first, int last) {
   first--;
   arr[pivot_pos] = arr[first];
   arr[first] = pivot;
+
   return first;
 }
 
@@ -191,10 +194,29 @@ void timeMeasurement(size_t len, Mode mode, double* result) {
 }
 
 int main() {
+  int arr1[1024];
+  int arr2[1024];
+  int arr3[1024];
+  fillRandom(arr1, 1024);
+  memcpy(arr2, arr1, 1024*sizeof(int));
+  memcpy(arr3, arr1, 1024*sizeof(int));
+
+  sortArray(arr1, 1024, lomuto);
+  sortArray(arr2, 1024, hoare);
+  sortArray(arr3, 1024, lomutoBF);
+
+  for (size_t i = 0; i < 1024; i++) {
+    if (arr1[i] != arr2[i] || arr2[i] != arr3[i] || arr3[i] != arr1[i]) {
+      fputs("Not equal", stderr);
+      exit(1);
+    }
+  }
+  
+
   double m[3];
-  for (size_t size = 1024; size <= 1000000000; size *= 2) {
+  for (size_t size = 1024; size <= 33554432; size *= 2) {
     timeMeasurement(size, lomuto, m);
-    printf("%zu: %f %f %f -- ", size, m[0], m[1], m[2]);
+    printf("%9zu: %f %f %f -- ", size, m[0], m[1], m[2]);
     timeMeasurement(size, hoare, m);
     printf("%f %f %f -- ", m[0], m[1], m[2]);
     timeMeasurement(size, lomutoBF, m);
