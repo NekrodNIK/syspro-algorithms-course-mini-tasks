@@ -1,5 +1,6 @@
 package matrix
 
+const cutoff = 16
 
 func ClassicMult(left, right Matrix) Matrix {
 	N, K, M := left.Rows(), left.Cols(), right.Cols()
@@ -17,7 +18,7 @@ func ClassicMult(left, right Matrix) Matrix {
 }
 
 func Recursive8Mult(left, right Matrix) Matrix {
-	if left.Rows() <= 64 {
+	if left.Rows() <= cutoff {
 		return ClassicMult(left, right);
 	}
 
@@ -33,7 +34,7 @@ func Recursive8Mult(left, right Matrix) Matrix {
 }
 
 func StrassenMult(left, right Matrix) Matrix {
-	if left.Rows() <= 64 {
+	if left.Rows() <= cutoff {
 		return ClassicMult(left, right);
 	}
 
