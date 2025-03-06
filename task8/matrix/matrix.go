@@ -18,6 +18,14 @@ func (m Matrix) Sub(from_row, to_row, from_col, to_col int) Matrix {
 	return sub
 }
 
+func (m Matrix) Copy(src Matrix, start_row, start_col int) {
+	for i := 0; i < src.Rows(); i++ {
+		for j := 0; j < src.Cols(); j++ {
+			m[start_col+i][start_row+j] = src[i][j]
+		}
+	}
+}
+
 func MakeMatrix(rows, cols int) Matrix {
 	m := make(Matrix, rows)
 
@@ -29,7 +37,7 @@ func MakeMatrix(rows, cols int) Matrix {
 }
 
 func Equal(m1, m2 Matrix) bool {
-	if m1.Rows() != m2.Rows() && m1.Cols() != m2.Cols() {
+	if m1.Rows() != m2.Rows() || m1.Cols() != m2.Cols() {
 		return false
 	}
 
@@ -40,34 +48,35 @@ func Equal(m1, m2 Matrix) bool {
 			}
 		}
 	}
-	
+
 	return true
 }
 
-func Addition(left, right Matrix) Matrix {
+func ElementWise(left, right Matrix, fn func(int, int) int) Matrix {
 	N, M := left.Rows(), left.Cols()
 	res := MakeMatrix(N, M)
 
 	for i := 0; i < N; i++ {
 		for j := 0; j < M; j++ {
-			res[i][j] = left[i][j] + right[i][j]
+			res[i][j] = fn(left[i][j], right[i][j])
 		}
 	}
 
 	return res
 }
 
-func Substract(left, right Matrix) Matrix {
-	N, M := left.Rows(), left.Cols()
-	res := MakeMatrix(N, M)
-
-	for i := 0; i < N; i++ {
-		for j := 0; j < M; j++ {
-			res[i][j] = left[i][j] - right[i][j]
-		}
+func Addition(left, right Matrix) Matrix {
+	add := func(a, b int) int {
+		return a + b
 	}
+	return ElementWise(left, right, add)
+}
 
-	return res
+func Substract(left, right Matrix) Matrix {
+	sub := func(a, b int) int {
+		return a - b
+	}
+	return ElementWise(left, right, sub)
 }
 
 func (m Matrix) Split() (A, B, C, D Matrix) {
@@ -94,29 +103,10 @@ func Merge(A, B, C, D Matrix) Matrix {
 	N, M := A.Rows()+C.Rows(), A.Cols()+B.Cols()
 	res := MakeMatrix(N, M)
 
-	for i := 0; i < A.Rows(); i++ {
-		for j := 0; j < A.Cols(); j++ {
-			res[i][j] = A[i][j]
-		}
-	}
-
-	for i := 0; i < B.Rows(); i++ {
-		for j := 0; j < B.Cols(); j++ {
-			res[i][B.Cols()+j] = B[i][j]
-		}
-	}
-
-	for i := 0; i < C.Rows(); i++ {
-		for j := 0; j < C.Cols(); j++ {
-			res[A.Rows()+i][j] = C[i][j]
-		}
-	}
-
-	for i := 0; i < D.Rows(); i++ {
-		for j := 0; j < D.Cols(); j++ {
-			res[A.Rows()+i][A.Cols()+j] = D[i][j]
-		}
-	}
+	res.Copy(A, 0, 0)
+	res.Copy(B, 0, B.Cols())
+	res.Copy(C, A.Rows(), 0)
+	res.Copy(D, A.Rows(), A.Cols())
 
 	return res
 }
