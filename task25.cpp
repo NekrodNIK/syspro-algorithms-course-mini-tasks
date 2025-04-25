@@ -92,5 +92,5 @@ int main() {
     cnt += set.lookup(addr);
   }
 
-  std::cout << ((double)(cnt - 4) / size) << '\n';
+  std::cout << ((double)(cnt - 4) / (size - 4)) << '\n';
 }
