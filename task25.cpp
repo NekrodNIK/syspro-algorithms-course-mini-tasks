@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <functional>
 #include <iostream>
-#include <limits>
 #include <random>
 #include <vector>
 
@@ -62,24 +61,36 @@ public:
 int main() {
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<uint8_t> distrib(0, 255);
 
-  IPSet set(1000, 0.01, gen);
-  std::array<IP, 1000> addresses;
-  addresses[0] = {distrib(gen), distrib(gen), distrib(gen), distrib(gen)};
-  for (size_t i = 1; i < 1000; i++) {
-    do {
-    IP addr = {distrib(gen), distrib(gen), distrib(gen), distrib(gen)};
-    addresses[i] = addr;
-    } while (addresses[i] == addresses[0]);
+  constexpr size_t size = 32*32*32*32;
+
+  IPSet set(size, 0.005, gen);
+  std::vector<IP> addresses;
+
+  for (auto i = 0; i < 32; i++) {
+    for (auto j = 0; j < 32; j++) {
+      for (auto k = 0; k < 32; k++) {
+        for (auto l = 0; l < 32; l++) {
+          addresses.push_back({
+              static_cast<uint8_t>(i),
+              static_cast<uint8_t>(j),
+              static_cast<uint8_t>(k),
+              static_cast<uint8_t>(l),
+          });
+        }
+      }
+    }
   }
 
   set.insert(addresses[0]);
+  set.insert(addresses[1]);
+  set.insert(addresses[2]);
+  set.insert(addresses[3]);
 
   int cnt;
   for (auto addr : addresses) {
     cnt += set.lookup(addr);
   }
 
-  std::cout << ((double) (cnt - 1) / 1000) << '\n';
+  std::cout << ((double)(cnt - 4) / size) << '\n';
 }
