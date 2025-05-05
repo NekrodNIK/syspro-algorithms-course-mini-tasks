@@ -29,13 +29,13 @@ class IPSet {
 public:
   IPSet(size_t predicted_num, double fp_rate, Gen& gen) {
     double k = log(fp_rate) / log(0.5);
-    double b = k / log(2);
-
     size_t hashes_num = static_cast<size_t>(floor(k));
-    size_t bit_per_obj = static_cast<size_t>(floor(b));
+
+    double b = hashes_num / log(2);
+    size_t bits = static_cast<size_t>(floor(predicted_num * b));
 
     hashes.resize(hashes_num);
-    bitset.resize(bit_per_obj * predicted_num);
+    bitset.resize(bits);
 
     for (size_t i = 1; i <= hashes_num; i++) {
       hashes[i - 1] = gen_hash_func(i, gen);
@@ -62,9 +62,9 @@ int main() {
   std::random_device rd;
   std::mt19937 gen(rd());
 
-  constexpr size_t size = 32*32*32*32;
+  constexpr size_t size = 32 * 32 * 32 * 32;
 
-  IPSet set(size, 0.005, gen);
+  IPSet set(size, 0.01, gen);
   std::vector<IP> addresses;
 
   for (auto i = 0; i < 32; i++) {
@@ -83,14 +83,11 @@ int main() {
   }
 
   set.insert(addresses[0]);
-  set.insert(addresses[1]);
-  set.insert(addresses[2]);
-  set.insert(addresses[3]);
 
   int cnt;
   for (auto addr : addresses) {
     cnt += set.lookup(addr);
   }
 
-  std::cout << ((double)(cnt - 4) / (size - 4)) << '\n';
+  std::cout << ((double)(cnt - 1) / size) << '\n';
 }
