@@ -9,14 +9,49 @@ class TreeNode(object):
 
 
 class Codec:
-    def serialize(self, root):
-        return json.dumps(root, default=vars)
+    def _serialize(self, node: TreeNode) -> dict:
+        result = {"val": node.val}
+        stack: list[tuple] = [
+            (node.left, result, "left"),
+            (node.right, result, "right"),
+        ]
 
-    def deserialize(self, data):
-        return json.loads(data, object_hook=self._obj_hook)
+        while stack:
+            node, p_dict, key = stack.pop()
 
-    def _obj_hook(self, dict_):
-        tr = TreeNode(dict_["val"])
-        tr.left = dict_["left"]
-        tr.right = dict_["right"]
-        return tr
+            if node is None:
+                p_dict[key] = None
+                continue
+
+            p_dict[key] = {"val": node.val}
+            stack.append((node.right, p_dict[key], "right"))
+            stack.append((node.left, p_dict[key], "left"))
+
+        return result
+
+    def _deserialize(self, dict_: dict) -> TreeNode:
+        result = TreeNode(dict_["val"])
+        stack: list[tuple] = [
+            (dict_["left"], result, "left"),
+            (dict_["right"], result, "right"),
+        ]
+
+        while stack:
+            dict_, p_node, key = stack.pop()
+
+            if dict_ is None:
+                continue
+
+            node = TreeNode(dict_["val"])
+            setattr(p_node, key, node)
+
+            stack.append((dict_["right"], node, "right"))
+            stack.append((dict_["left"], node, "left"))
+
+        return result
+
+    def serialize(self, root: TreeNode | None) -> str:
+        return json.dumps(self._serialize(root)) if root else ""
+
+    def deserialize(self, data: str) -> TreeNode | None:
+        return self._deserialize(json.loads(data)) if data else None
