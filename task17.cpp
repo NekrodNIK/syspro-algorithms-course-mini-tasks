@@ -10,26 +10,31 @@ struct ListNode {
 
 class Solution {
 public:
+  struct Compare {
+    bool operator()(ListNode* a, ListNode* b) { return a->val > b->val; };
+  };
+
   ListNode* mergeKLists(std::vector<ListNode*>& lists) {
-    std::priority_queue<int> queue;
+    std::priority_queue<ListNode*, std::vector<ListNode*>, Compare> queue;
 
-    for (auto ptr : lists) {
-      while (ptr != nullptr) {
-        queue.push(ptr->val);
-        ptr = ptr->next;
-      }
+    for (auto head : lists) {
+      if (head)
+        queue.push(head);
     }
 
-    if (queue.size() == 0) {
-      return nullptr;
-    }
-
-    ListNode* cur = nullptr;
-    while (queue.size() > 0) {
-      cur = new ListNode(queue.top(), cur);
+    ListNode head;
+    ListNode* cur = &head;
+    while (!queue.empty()) {
+      ListNode* min = queue.top();
       queue.pop();
+
+      cur->next = min;
+      cur = min;
+
+      if (min->next)
+        queue.push(min->next);
     }
 
-    return cur;
+    return head.next;
   }
 };
