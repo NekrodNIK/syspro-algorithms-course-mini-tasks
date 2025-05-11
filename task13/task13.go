@@ -1,21 +1,19 @@
-package main
+package task13
 
 import (
 	"math/rand"
 )
 
 func partition(arr []int) int {
-	i := -1
-	j := len(arr)
+	i := 0
+	j := len(arr) - 1
 
 	pivot := arr[rand.Intn(len(arr))]
 	for {
-		i++
 		for arr[i] < pivot {
 			i++
 		}
 
-		j--
 		for arr[j] > pivot {
 			j--
 		}
@@ -26,7 +24,8 @@ func partition(arr []int) int {
 
 		arr[i], arr[j] = arr[j], arr[i]
 	}
-	return i
+
+	return j
 }
 
 func kth(arr []int, k int) int {
@@ -50,7 +49,7 @@ func kth(arr []int, k int) int {
 	}
 }
 
-func findMainPipeline(arr []int) int {
+func FindMainPipeline(arr []int) int {
 	mid := len(arr) / 2
 
 	lower := kth(arr, mid)
@@ -60,8 +59,4 @@ func findMainPipeline(arr []int) int {
 	}
 
 	return upper
-}
-
-func main() {
-	
 }

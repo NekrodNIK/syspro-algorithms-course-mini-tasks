@@ -23,6 +23,7 @@ hash_func gen_hash_func(size_t m, Gen& gen) {
 }
 
 class IPSet {
+public:
   std::vector<bool> bitset;
   std::vector<hash_func> hashes;
 
@@ -64,7 +65,7 @@ int main() {
 
   constexpr size_t size = 32 * 32 * 32 * 32;
 
-  IPSet set(size, 0.01, gen);
+  IPSet set(size, 1, gen);
   std::vector<IP> addresses;
 
   for (auto i = 0; i < 32; i++) {
@@ -90,4 +91,5 @@ int main() {
   }
 
   std::cout << ((double)(cnt - 1) / size) << '\n';
+  std::cout << set.hashes.size() << '\n';
 }
