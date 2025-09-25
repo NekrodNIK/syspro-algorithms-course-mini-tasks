@@ -102,10 +102,10 @@ fn naive(tasks: &[Task]) -> Res {
         }
     }
 
-    return Res {
+    Res {
         schedule,
         total_penalty,
-    };
+    }
 }
 
 fn solution(tasks: &[Task]) -> Res {
