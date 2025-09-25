@@ -1,3 +1,4 @@
+use std::mem;
 use std::ops::ControlFlow;
 
 #[derive(Debug, Clone, Default)]
@@ -42,24 +43,23 @@ impl UnionFind {
         root
     }
 
-    pub fn union(&mut self, x: usize, y: usize) -> bool {
-        let xR = self.find(x);
-        let yR = self.find(y);
+    pub fn union(&mut self, mut x: usize, mut y: usize) -> bool {
+        x = self.find(x);
+        y = self.find(y);
 
-        if xR == yR {
+        if x == y {
             return false;
         }
 
-        if self.vec[xR].rank == self.vec[yR].rank {
-            self.vec[xR].rank += 1;
+        if self.vec[x].rank > self.vec[y].rank {
+            mem::swap(&mut x, &mut y);
         }
 
-        if x > y {
-            self.vec[x].parent = y;
-        } else {
-            self.vec[y].parent = x;
+        if self.vec[x].rank == self.vec[y].rank {
+            self.vec[x].rank += 1;
         }
 
+        self.vec[x].parent = y;
         true
     }
 }
