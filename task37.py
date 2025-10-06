@@ -1,5 +1,7 @@
 # polynomial solution using combinatorics
+
 from math import comb
+from itertools import permutations
 
 
 def count_topological_sorts(tree, root) -> int:
@@ -13,10 +15,8 @@ def count_topological_sorts(tree, root) -> int:
 
         if not visited[u]:
             visited[u] = True
-            if len(tree[u]) == 2:
-                stack.append(tree[u][1])
-            if len(tree[u]) >= 1:
-                stack.append(tree[u][0])
+            for v in tree[u]:
+                stack.append(v)
             continue
 
         stack.pop()
@@ -27,7 +27,7 @@ def count_topological_sorts(tree, root) -> int:
         count[u] = 1
         size[u] = 1
         for v in tree[u]:
-            count[u] = comb(size[u] + size[v] - 1, size[v]) * count[u] * count[v]
+            count[u] = comb((size[u] - 1) + size[v], size[v]) * count[u] * count[v]
             size[u] += size[v]
 
     return count[root]
@@ -37,10 +37,10 @@ if __name__ == "__main__":
     tree = [[]]
     assert count_topological_sorts(tree, 0) == 1
 
-    tree = [[1, 3], [], [], []]
+    tree = [[1, 2], [], [], []]
     assert count_topological_sorts(tree, 0) == 2
 
-    tree = [[1], [3], [], []]
+    tree = [[1], [2], [], []]
     assert count_topological_sorts(tree, 0) == 1
 
     tree = [[1, 3], [2], [], []]
