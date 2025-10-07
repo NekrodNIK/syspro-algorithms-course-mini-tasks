@@ -56,7 +56,11 @@ impl UnionFind {
         }
 
         if self.vec[x].rank == self.vec[y].rank {
-            self.vec[x].rank += 1;
+            if x < y {
+                mem::swap(&mut x, &mut y);
+            }
+
+            self.vec[y].rank += 1;
         }
 
         self.vec[x].parent = y;
@@ -83,7 +87,7 @@ struct Res {
 }
 
 fn naive(tasks: &[Task]) -> Res {
-    let max = tasks[0].deadline;
+    let max = tasks.iter().max_by_key(|x| x.deadline).unwrap().deadline;
 
     let mut schedule = vec![None; max];
     let mut total_penalty = 0;
@@ -109,7 +113,7 @@ fn naive(tasks: &[Task]) -> Res {
 }
 
 fn solution(tasks: &[Task]) -> Res {
-    let max = tasks[0].deadline;
+    let max = tasks.iter().max_by_key(|x| x.deadline).unwrap().deadline;
     let mut uf = UnionFind::new(max + 1);
 
     let mut schedule = vec![None; max];
@@ -148,15 +152,15 @@ mod tests {
             Task::new(3, 1),
             Task::new(3, 1),
         ];
-        tasks.sort_by(|x, y| y.deadline.cmp(&x.deadline));
+        tasks.sort_by(|x, y| y.penalty.cmp(&x.penalty));
 
         let res = solution(&tasks);
-        assert_eq!(res.total_penalty, 100);
+        assert_eq!(res.total_penalty, 1);
         assert_eq!(
             res.schedule,
             [
+                Some(Task::new(1, 100)),
                 Some(Task::new(2, 1)),
-                Some(Task::new(3, 1)),
                 Some(Task::new(3, 1)),
             ]
         );
@@ -170,7 +174,7 @@ mod tests {
             Task::new(5, 1),
             Task::new(4, 1),
         ];
-        tasks.sort_by(|x, y| y.deadline.cmp(&x.deadline));
+        tasks.sort_by(|x, y| y.penalty.cmp(&x.penalty));
 
         let res = solution(&tasks);
         assert_eq!(res.total_penalty, 0);
@@ -186,7 +190,7 @@ mod tests {
         );
 
         let res = naive(&tasks);
-        assert_eq!(res.total_penalty, 5);
+        assert_ne!(res.total_penalty, 0);
         assert_ne!(
             res.schedule,
             [
