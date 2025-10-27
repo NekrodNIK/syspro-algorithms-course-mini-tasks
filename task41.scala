@@ -1,4 +1,4 @@
-class SmallerThat(val a: Array[Int]):
+class LessThan(val a: Array[Int]):
   private val n = a.length
   private val t = Array.fill(4 * n)(Array.empty[Int])
 
@@ -60,5 +60,5 @@ class SmallerThat(val a: Array[Int]):
 
 object Solution:
   def countSmaller(nums: Array[Int]): List[Int] =
-    val st = SmallerThat(nums)
-    nums.indices.map(i => st(i + 1, nums.length, nums(i))).toList
+    val lt = LessThan(nums)
+    nums.indices.map(i => lt(i + 1, nums.length, nums(i))).toList
