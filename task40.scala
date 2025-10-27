@@ -16,14 +16,14 @@ class NumArray(nums: Array[Int]):
       t(v) = t(v * 2) + t(v * 2 + 1)
 
   def update(index: Int, value: Int): Unit =
-    def inner(v: Int, tl: Int, tr: Int, pos: Int, new_val: Int): Unit =
-      if tl == tr then t(v) = new_val
+    def inner(v: Int, tl: Int, tr: Int): Unit =
+      if tl == tr then t(v) = value
       else
         val tm = (tl + tr) / 2
-        if pos <= tm then inner(v * 2, tl, tm, pos, new_val)
-        else inner(v * 2 + 1, tm + 1, tr, pos, new_val)
+        if index <= tm then inner(v * 2, tl, tm)
+        else inner(v * 2 + 1, tm + 1, tr)
         t(v) = t(v * 2) + t(v * 2 + 1)
-    inner(1, 0, N - 1, index, value)
+    inner(1, 0, N - 1)
 
   def sumRange(left: Int, right: Int): Int =
     def inner(v: Int, tl: Int, tr: Int, l: Int, r: Int): Int =
