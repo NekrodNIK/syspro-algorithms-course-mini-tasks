@@ -2,9 +2,10 @@
 #include <algorithm>
 #include <vector>
 
+constexpr int mod = 1e9 + 7;
+
 class Solution {
 private:
-  const int mod = 1e9 + 7;
   std::vector<int> s;
 
   void inc(int pos) {
