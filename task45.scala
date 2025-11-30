@@ -47,7 +47,7 @@ def bhk(graph: AdjMatrix): Int =
 
 def generate(size: Int, from: Int, to: Int): AdjMatrix =
   val random = new Random()
-  Array.tabulate(size, size)((i, j) => if i == j then 0 else random.nextInt(to - from) + from)
+  Array.tabulate(size, size)((i, j) => if i == j then 0 else random.between(from, to+1))
 
 @main def main: Unit =
   for n <- 2 to 300 do
