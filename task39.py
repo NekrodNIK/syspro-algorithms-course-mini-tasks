@@ -1,12 +1,26 @@
-from random import random
+from random import randint
 from dataclasses import dataclass, field
 from typing import Iterable
+import sys
 
+class PriorityGenerator:    
+    def __init__(self):
+        self._priority_set = set()
+        
+    def __call__(self) -> int:
+        new_pr = randint(0, sys.maxsize)
+        while new_pr in self._priority_set:
+            new_pr = randint(0, sys.maxsize)
+
+        self._priority_set.add(new_pr)
+        return new_pr
+
+_generator = PriorityGenerator()
 
 @dataclass
 class Node:
     value: int
-    priority: float = field(default_factory=random)
+    priority: float = field(default_factory=_generator)
     size: int = 1
     left: "Node | None" = None
     right: "Node | None" = None

@@ -15,9 +15,14 @@ case class FilterResult(
     total: Int
 )
 
+
 class SpamFilter {
-  private val root: Node                                   = Node(null, ' ')
-  private val triggerMap: mutable.Map[String, (Node, Int)] = mutable.Map.empty
+  private val root = Node(null, ' ')
+  private case class MapValue(
+    var node: Node,
+    var counter: Int
+  )
+  private val triggerMap = mutable.Map[String, MapValue]()
 
   private def suf(v: Node): Node = {
     if v.suffLink == null then
@@ -36,16 +41,14 @@ class SpamFilter {
   }
 
   def addTrigger(trigger: String): Unit = {
-    var v = root
-    for c <- trigger do v = v.go.getOrElseUpdate(c, Node(v, c))
+    val v = trigger.foldRight(root)((c, v) => v.go.getOrElseUpdate(c, Node(v, c)))
     v.terminal = true
-    triggerMap(trigger) = (v, 0)
+    triggerMap(trigger) = MapValue(v, 0)
   }
-
   def addTriggers(triggers: Iterable[String]): Unit = triggers.foreach(addTrigger(_))
 
   def apply(str: String): FilterResult = {
-    triggerMap.keys.foreach(t => triggerMap(t) = (triggerMap(t)._1, 0))
+    triggerMap.keys.foreach(triggerMap(_).counter = 0)
 
     var v = root
     for i <- 0 until str.length do
@@ -55,13 +58,13 @@ class SpamFilter {
       while temp != root do
         if temp.terminal then
           triggerMap.find { case (trigger, _) => temp == triggerMap(trigger)._1 } match {
-            case Some((trigger, _)) => triggerMap(trigger) = (triggerMap(trigger)._1, triggerMap(trigger)._2 + 1)
+            case Some((trigger, _)) => triggerMap(trigger).counter += 1
             case None               =>
           }
         temp = suf(temp)
 
-    val total = triggerMap.values.map(_._2).sum
-    FilterResult(triggerMap.mapValues(_._2).toMap, total)
+    val total = triggerMap.values.map(_.counter).sum
+    FilterResult(triggerMap.mapValues(_.counter).toMap, total)
   }
 }
 
