@@ -1,77 +1,57 @@
 use std::mem;
-use std::ops::ControlFlow;
 
-#[derive(Debug, Clone, Default)]
-struct Unit {
-    parent: usize,
-    rank: usize,
+#[derive(Debug, Clone)]
+struct UnionFind {
+    pub parent: Vec<usize>,
+    pub rank: Vec<usize>,
+    pub left: Vec<usize>,
 }
 
-#[derive(Debug, Clone, Default)]
-struct UnionFind {
-    vec: Vec<Unit>,
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Task {
+    pub deadline: usize,
+    pub penalty: usize,
 }
 
 impl UnionFind {
     pub fn new(size: usize) -> Self {
-        let mut vec = vec![Unit::default(); size];
-
-        for i in 0..size {
-            vec[i].parent = i;
+        Self {
+            parent: (0..size).collect(),
+            rank: (0..size).map(|_| 0).collect(),
+            left: (0..size).collect(),
         }
-
-        return Self { vec };
     }
 
     pub fn find(&mut self, x: usize) -> usize {
-        if x >= self.vec.len() {
-            return 0;
+        if x != self.parent[x] {
+            self.parent[x] = self.find(self.parent[x]);
         }
 
-        let mut root = self.vec[x].parent;
-        while self.vec[root].parent != root {
-            root = self.vec[root].parent;
-        }
-
-        let mut node = x;
-        while self.vec[node].parent != root {
-            let p = self.vec[node].parent;
-            self.vec[node].parent = root;
-            node = p;
-        }
-
-        root
+        self.parent[x]
     }
 
-    pub fn union(&mut self, mut x: usize, mut y: usize) -> bool {
+    pub fn leftmost(&mut self, mut x: usize) -> usize {
+        x = self.find(x);
+        self.left[x]
+    }
+
+    pub fn union(&mut self, mut x: usize, mut y: usize) {
         x = self.find(x);
         y = self.find(y);
 
-        if x == y {
-            return false;
-        }
-
-        if self.vec[x].rank > self.vec[y].rank {
-            mem::swap(&mut x, &mut y);
-        }
-
-        if self.vec[x].rank == self.vec[y].rank {
-            if x < y {
+        if x != y {
+            if self.rank[x] < self.rank[y] {
                 mem::swap(&mut x, &mut y);
             }
 
-            self.vec[y].rank += 1;
+            self.left[x] = self.left[x].min(self.left[y]);
+            self.parent[y] = x;
+
+            if self.rank[x] == self.rank[y] {
+                self.rank[x] += 1;
+            }
         }
-
-        self.vec[x].parent = y;
-        true
     }
-}
-
-#[derive(Debug, Clone, Default, PartialEq)]
-struct Task {
-    pub deadline: usize,
-    pub penalty: usize,
 }
 
 impl Task {
@@ -80,51 +60,36 @@ impl Task {
     }
 }
 
-#[derive(Debug, Clone)]
-struct Res {
-    pub schedule: Vec<Option<Task>>,
-    pub total_penalty: usize,
-}
-
-fn naive(tasks: &[Task]) -> Res {
-    let max = tasks.iter().max_by_key(|x| x.deadline).unwrap().deadline;
-
-    let mut schedule = vec![None; max];
+fn naive(tasks: &[Task], max_deadline: usize) -> (Vec<Option<Task>>, usize) {
+    let mut schedule = vec![None; max_deadline];
     let mut total_penalty = 0;
 
     for task in tasks {
-        let status = (1..task.deadline).try_for_each(|i| {
-            if schedule[i].is_none() {
-                schedule[i] = Some(task.clone());
-                return ControlFlow::Break(());
-            }
-            ControlFlow::Continue(())
-        });
-
-        if status.is_continue() {
-            total_penalty += task.penalty;
+        match schedule[0..task.deadline].iter().position(|v| v.is_none()) {
+            Some(ind) => schedule[ind] = Some(*task),
+            None => total_penalty += task.penalty,
+        }
+        match schedule.iter().rev().position(|v| v.is_none()) {
+            Some(ind) => schedule[ind] = Some(*task),
+            None => total_penalty += task.penalty,
         }
     }
 
-    Res {
-        schedule,
-        total_penalty,
-    }
+    (schedule, total_penalty)
 }
 
-fn solution(tasks: &[Task]) -> Res {
-    let max = tasks.iter().max_by_key(|x| x.deadline).unwrap().deadline;
-    let mut uf = UnionFind::new(max + 1);
+fn solution(tasks: &[Task], max_deadline: usize) -> (Vec<Option<Task>>, usize) {
+    let mut uf = UnionFind::new(max_deadline + 1);
 
-    let mut schedule = vec![None; max];
+    let mut schedule = vec![None; max_deadline];
     let mut total_penalty = 0;
 
     for task in tasks {
-        let mut slot = uf.find(task.deadline);
+        let mut slot = uf.leftmost(task.deadline);
 
         if slot == 0 {
             total_penalty += task.penalty;
-            slot = uf.find(max);
+            slot = uf.leftmost(max_deadline);
             if slot == 0 {
                 continue;
             }
@@ -134,10 +99,7 @@ fn solution(tasks: &[Task]) -> Res {
         uf.union(slot, slot - 1);
     }
 
-    Res {
-        schedule,
-        total_penalty,
-    }
+    (schedule, total_penalty)
 }
 
 #[cfg(test)]
@@ -154,10 +116,11 @@ mod tests {
         ];
         tasks.sort_by(|x, y| y.penalty.cmp(&x.penalty));
 
-        let res = solution(&tasks);
-        assert_eq!(res.total_penalty, 1);
+        let max_deadline = tasks.iter().map(|t| t.deadline).max().unwrap_or(0);
+        let res = solution(&tasks, max_deadline);
+        assert_eq!(res.1, 1);
         assert_eq!(
-            res.schedule,
+            res.0,
             [
                 Some(Task::new(1, 100)),
                 Some(Task::new(2, 1)),
@@ -176,10 +139,11 @@ mod tests {
         ];
         tasks.sort_by(|x, y| y.penalty.cmp(&x.penalty));
 
-        let res = solution(&tasks);
-        assert_eq!(res.total_penalty, 0);
+        let max_deadline = tasks.iter().map(|t| t.deadline).max().unwrap_or(0);
+        let res = solution(&tasks, max_deadline);
+        assert_eq!(res.1, 0);
         assert_eq!(
-            res.schedule,
+            res.0,
             [
                 Some(Task::new(1, 3)),
                 Some(Task::new(2, 2)),
@@ -189,10 +153,10 @@ mod tests {
             ]
         );
 
-        let res = naive(&tasks);
-        assert_ne!(res.total_penalty, 0);
+        let res = naive(&tasks, max_deadline);
+        assert_eq!(res.1, 0);
         assert_ne!(
-            res.schedule,
+            res.0,
             [
                 Some(Task::new(1, 3)),
                 Some(Task::new(2, 2)),
