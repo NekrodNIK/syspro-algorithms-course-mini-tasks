@@ -9,6 +9,7 @@ class Node(
     var suffLink: Node = null,
     var terminal: String = null,
     val go: mutable.Map[Char, Node] = mutable.Map.empty,
+    val goSuff: mutable.Map[Char, Node] = mutable.Map.empty,
     var count: Int = 0
 )
 
@@ -17,7 +18,7 @@ case class FilterResult(
     total: Int
 )
 
-class SpamFilter(triggers: mutable.ArrayBuffer[String]) {
+class SpamFilter {
   private var root: Node = Node(null, ' ')
 
   private def suf(v: Node): Node = {
@@ -30,24 +31,27 @@ class SpamFilter(triggers: mutable.ArrayBuffer[String]) {
 
   private def next(v: Node, c: Char): Node = {
     if !v.go.contains(c) then
-      v.go(c) =
-        if v == root then root
-        else next(suf(v), c)
-    v.go(c)
+      v.goSuff(c) = if v == root then root else next(suf(v), c)
+      v.goSuff(c)
+    else
+      v.go(c)
   }
 
-  private def rebuild: Unit = {
-    root = Node(null, ' ')
-    for trigger <- triggers do      
-      var v = root
-      for c <- trigger do
-        v = v.go.getOrElseUpdate(c, Node(v, c))
-      v.terminal = trigger
+  private def invalidateSuffix(cur: Node): Unit = {
+    for child <- cur.go.values do {
+      invalidateSuffix(child)
+      cur.goSuff.clear()
+      cur.suffLink = null
+    }        
   }
 
   def addTrigger(trigger: String): Unit = {
-    triggers += trigger
-    rebuild
+    var v = root
+    for c <- trigger do
+      v = v.go.getOrElseUpdate(c, Node(v, c))
+    v.terminal = trigger
+
+    invalidateSuffix(root)
   }
 
   def apply(str: String): FilterResult = {  
@@ -71,7 +75,7 @@ class SpamFilter(triggers: mutable.ArrayBuffer[String]) {
         val trigger = suf_node.terminal
         if trigger != null then
           map(trigger) += cur.count
-          total += 1
+          total += cur.count
         suf_node = suf(suf_node)
 
     FilterResult(map.toMap, total)
@@ -81,8 +85,15 @@ class SpamFilter(triggers: mutable.ArrayBuffer[String]) {
 
 object SpamFilter {
   def apply(initial_triggers: Iterable[String]): SpamFilter = {
-    val obj = new SpamFilter(ArrayBuffer.from(initial_triggers))
-    obj.rebuild
+    val obj = new SpamFilter()
+
+    for trigger <- initial_triggers do {
+      var v = obj.root
+      for c <- trigger do
+        v = v.go.getOrElseUpdate(c, Node(v, c))
+      v.terminal = trigger
+    }
+
     obj
   }
 }
