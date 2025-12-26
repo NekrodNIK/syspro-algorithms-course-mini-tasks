@@ -1,1 +1,2 @@
-# syspro-algorithms-course-mini-tasks
+# syspro-algorithms
+Solutions to mini-tasks from the syspro algorithms course
